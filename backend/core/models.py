@@ -42,3 +42,19 @@ class Ticket(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.event.name} [{self.status}]"
+
+
+class User(AbstractUser):
+    ROLE_CHOICES = (
+        ('user', 'User'),
+        ('organizer', 'Organizer'),
+        ('admin', 'Admin'),
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
+    email = models.EmailField(unique=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']  # email is used as login
+
+    def __str__(self):
+        return self.email
