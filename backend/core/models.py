@@ -1,5 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 
 class Event(models.Model):
     CATEGORY_CHOICES = [
@@ -26,7 +27,7 @@ class Event(models.Model):
 
 class Ticket(models.Model):
     """Represents a ticket for an event reserved or bought by a user."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     qr_code = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(
