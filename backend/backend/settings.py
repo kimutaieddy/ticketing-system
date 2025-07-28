@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_yasg',
-    'core',
+    'core',  # This is the app we will create for our core functionality
 ]
 
 MIDDLEWARE = [
