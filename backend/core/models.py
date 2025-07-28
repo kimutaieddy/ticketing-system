@@ -2,10 +2,18 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Event(models.Model):
-    """Represents an event that users can book tickets for."""
+    CATEGORY_CHOICES = [
+        ('music', 'Music'),
+        ('sports', 'Sports'),
+        ('conference', 'Conference'),
+        ('comedy', 'Comedy'),
+        ('other', 'Other'),
+    ]
+
     name = models.CharField(max_length=100)
     description = models.TextField()
     location = models.CharField(max_length=255)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='other')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     capacity = models.IntegerField()
@@ -13,6 +21,7 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class Ticket(models.Model):

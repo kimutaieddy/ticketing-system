@@ -31,9 +31,13 @@ ALLOWED_HOSTS = []
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
+INSTALLED_APPS = ['django_filters']
 # Application definition
 
 INSTALLED_APPS = [
@@ -47,8 +51,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_yasg',
     'core',  # This is the app we will create for our core functionality
+    'django_filters',  # For filtering in DRF views
+    'django_extensions',  # Optional: for additional management commands and features
 ]
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -58,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+
+
 
 ROOT_URLCONF = 'backend.urls'
 
@@ -143,3 +151,13 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
+
+
+
+
+
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # for dev
+DEFAULT_FROM_EMAIL = 'noreply@ticketing.co.ke'
