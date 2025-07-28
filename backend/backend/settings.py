@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'core',  # This is the app we will create for our core functionality
     'django_filters',  # For filtering in DRF views
     'django_extensions',  # Optional: for additional management commands and features
-    'account',  #  if you have a custom user model or account management
+    'accounts',  #  if you have a custom user model or account management
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -69,7 +69,7 @@ MIDDLEWARE = [
 
 
 # Custom user model 
-AUTH_USER_MODEL = 'account.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 
 
