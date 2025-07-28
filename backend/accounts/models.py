@@ -1,3 +1,2 @@
 from django.db import models
-
-# Create your models here.
+# No custom User model here. Use the one from core app.

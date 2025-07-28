@@ -25,4 +25,6 @@ urlpatterns = [
     path('api/', include('core.urls')),  # we'll add this soon
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('accounts/', include('accounts.urls')),  # accounts app for user management
+    # path('events/', include('events.urls')),  # events app for event management
 ]
