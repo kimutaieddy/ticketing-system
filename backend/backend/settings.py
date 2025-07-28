@@ -26,7 +26,13 @@ SECRET_KEY = 'django-insecure-a^&!-)-wb%c5=_n@xai)ofp7^6859)1tdxqh^5(^c)iuj@zdp#
 DEBUG = True
 
 ALLOWED_HOSTS = []
+#Configure Django REST Framework + JWT authentication 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Application definition
 
@@ -37,6 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'drf_yasg',
+    'core',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +60,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
+
 
 TEMPLATES = [
     {
