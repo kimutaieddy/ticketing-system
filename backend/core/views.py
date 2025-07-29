@@ -15,8 +15,7 @@ from django.conf import settings
 class EventListCreateView(generics.ListCreateAPIView):
     queryset = Event.objects.all().order_by('-start_time')
     serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['category', 'location']
     search_fields = ['name', 'description']
