@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'django_filters',  # For filtering in DRF views
     'django_extensions',  # Optional: for additional management commands and features
     'accounts',  #  if you have a custom user model or account management
+    'drf_yasg' # For API documentation
+    
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
