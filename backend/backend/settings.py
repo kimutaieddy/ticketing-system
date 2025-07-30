@@ -37,9 +37,7 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
-INSTALLED_APPS = ['django_filters']
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,13 +47,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'drf_yasg',
+    'drf_yasg',  # For API documentation
     'core',  # This is the app we will create for our core functionality
     'django_filters',  # For filtering in DRF views
     'django_extensions',  # Optional: for additional management commands and features
     'accounts',  #  if you have a custom user model or account management
-    'drf_yasg' # For API documentation
-    
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
