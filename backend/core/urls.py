@@ -15,5 +15,3 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
 
 ]
-
-
