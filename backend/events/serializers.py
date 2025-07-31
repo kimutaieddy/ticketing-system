@@ -16,7 +16,18 @@ class OrganizerProfileSerializers(serializers.ModelSerializer):
         model = Event
         fields = ['id', 'organizer_name', 'user']
 
-class TicketSerializer(serializers.ModelSerializer):
+class EventSerializer(serializers.ModelSerializer):
+    organizer = serializers.StringRelatedField(read_only=True)
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source='category', write_only=True
+    )
+
     class Meta:
-        model = Ticket
-        fields = '__all__'
+        model = Event
+        fields = [
+            'id', 'organizer', 'title', 'description', 'venue', 
+            'start_date', 'end_date', 'image', 'capacity', 
+            'category', 'category_id', 'created_at'
+        ]
+        read_only_fields = ['id', 'organizer', 'created_at']
