@@ -6,6 +6,8 @@
 from django.urls import path, include
 from .views import EventListCreateView, TicketCreateView, MyTicketsView
 
+
+
 urlpatterns = [
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<int:event_id>/book/', TicketCreateView.as_view(), name='book-ticket'),
@@ -13,4 +15,5 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
 
 ]
+
 
