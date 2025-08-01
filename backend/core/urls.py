@@ -4,14 +4,18 @@
 
 
 from django.urls import path, include
-from .views import EventListCreateView, TicketCreateView, MyTicketsView
-
-
+from .views import (
+    EventListCreateView, TicketCreateView, MyTicketsView,
+    validate_ticket, bulk_validate_tickets
+)
 
 urlpatterns = [
     path('events/', EventListCreateView.as_view(), name='event-list-create'),
     path('events/<int:event_id>/book/', TicketCreateView.as_view(), name='book-ticket'),
     path('my-tickets/', MyTicketsView.as_view(), name='my-tickets'),
     path('api/auth/', include('accounts.urls')),
-
+    
+    # 🎫 QR Code Validation Endpoints
+    path('validate-ticket/<uuid:validation_token>/', validate_ticket, name='validate-ticket'),
+    path('bulk-validate/', bulk_validate_tickets, name='bulk-validate-tickets'),
 ]
