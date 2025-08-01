@@ -21,9 +21,23 @@ class Event(models.Model):
     end_time = models.DateTimeField()
     capacity = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Event organizer relationship
+    organizer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='organized_events',
+        limit_choices_to={'role__in': ['organizer', 'admin']}
+    )
 
     def __str__(self):
         return self.name
+    
+    def can_be_scanned_by(self, user):
+        """Check if user can scan tickets for this event"""
+        return (user == self.organizer or 
+                user.role in ['admin'] or 
+                user.is_superuser)
 
 
 
