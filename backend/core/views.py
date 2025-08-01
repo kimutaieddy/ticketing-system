@@ -21,8 +21,23 @@ class EventListCreateView(generics.ListCreateAPIView):
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['category', 'location']
+    filterset_fields = ['category', 'location', 'organizer']
     search_fields = ['name', 'description']
+
+    def perform_create(self, serializer):
+        # Automatically set the current user as the organizer
+        # Only allow organizers and admins to create events
+        if self.request.user.role not in ['organizer', 'admin'] and not self.request.user.is_superuser:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only organizers and admins can create events")
+        
+        serializer.save(organizer=self.request.user)
+
+    def get_queryset(self):
+        # Organizers can only see their own events (unless admin)
+        if self.request.user.role == 'organizer':
+            return Event.objects.filter(organizer=self.request.user).order_by('-start_time')
+        return Event.objects.all().order_by('-start_time')
 
 
 # 🎟️ Book a Ticket for an Event
@@ -74,12 +89,12 @@ class MyTicketsView(generics.ListAPIView):
 
 # 🎫 QR Code Ticket Validation API
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])  # Scanner apps don't need authentication
+@permission_classes([IsOrganizerOrAdmin])  # Only organizers/admins can scan
 def validate_ticket(request, validation_token):
     """
     Validate a ticket using its validation token from QR code
     GET: Check ticket status without marking as used
-    POST: Mark ticket as used/scanned
+    POST: Mark ticket as used/scanned (only by event organizer)
     """
     try:
         ticket = get_object_or_404(Ticket, validation_token=validation_token)
@@ -89,6 +104,16 @@ def validate_ticket(request, validation_token):
             'status': 'invalid',
             'message': 'Invalid ticket token'
         }, status=status.HTTP_404_NOT_FOUND)
+
+    # Check if user can scan this event's tickets
+    if not ticket.event.can_be_scanned_by(request.user):
+        return Response({
+            'valid': False,
+            'status': 'forbidden',
+            'message': f'You are not authorized to scan tickets for event: {ticket.event.name}',
+            'event': ticket.event.name,
+            'event_organizer': ticket.event.organizer.username
+        }, status=status.HTTP_403_FORBIDDEN)
 
     # Check if ticket is scannable
     if not ticket.is_scannable():
@@ -114,31 +139,33 @@ def validate_ticket(request, validation_token):
             'valid': True,
             'status': 'scannable',
             'message': 'Ticket is valid and ready to scan',
+            'event': {
+                'name': ticket.event.name,
+                'organizer': ticket.event.organizer.username,
+                'start_time': ticket.event.start_time
+            },
             'ticket': TicketValidationSerializer(ticket).data
         })
 
     # POST request: Mark ticket as used
     if request.method == 'POST':
-        # Get scanner user info if provided
-        scanned_by_user = None
-        if request.user.is_authenticated:
-            scanned_by_user = request.user
-
         # Mark ticket as used
-        ticket.mark_as_used(scanned_by_user)
+        ticket.mark_as_used(request.user)
 
         return Response({
             'valid': True,
             'status': 'scanned',
-            'message': 'Ticket successfully scanned and marked as used',
+            'message': f'Ticket successfully scanned by {request.user.username}',
             'scanned_at': ticket.scanned_at,
+            'scanned_by': request.user.username,
+            'event': ticket.event.name,
             'ticket': TicketValidationSerializer(ticket).data
         })
 
 
 # 🔍 Bulk Ticket Status Check (for event organizers)
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsOrganizerOrAdmin])
 def bulk_validate_tickets(request):
     """
     Check status of multiple tickets at once
@@ -154,6 +181,16 @@ def bulk_validate_tickets(request):
     for token in tokens:
         try:
             ticket = Ticket.objects.get(validation_token=token)
+            # Check if user can access this ticket's event
+            if not ticket.event.can_be_scanned_by(request.user):
+                results.append({
+                    'token': token,
+                    'valid': False,
+                    'status': 'forbidden',
+                    'ticket': None
+                })
+                continue
+                
             results.append({
                 'token': token,
                 'valid': ticket.is_scannable(),
@@ -173,3 +210,61 @@ def bulk_validate_tickets(request):
         'total_checked': len(tokens),
         'valid_count': sum(1 for r in results if r['valid'])
     })
+
+
+# 📊 Organizer Dashboard Views
+class OrganizerEventListView(generics.ListAPIView):
+    """List events for the current organizer"""
+    serializer_class = EventSerializer
+    permission_classes = [IsOrganizerOrAdmin]
+
+    def get_queryset(self):
+        if self.request.user.role == 'admin' or self.request.user.is_superuser:
+            return Event.objects.all().order_by('-start_time')
+        return Event.objects.filter(organizer=self.request.user).order_by('-start_time')
+
+
+class EventTicketsView(generics.ListAPIView):
+    """List all tickets for a specific event (organizer only)"""
+    serializer_class = TicketSerializer
+    permission_classes = [IsOrganizerOrAdmin]
+
+    def get_queryset(self):
+        event_id = self.kwargs.get('event_id')
+        event = get_object_or_404(Event, id=event_id)
+        
+        # Check if user can access this event
+        if not event.can_be_scanned_by(self.request.user):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("You don't have permission to view tickets for this event")
+        
+        return Ticket.objects.filter(event=event).order_by('-created_at')
+
+
+@api_view(['GET'])
+@permission_classes([IsOrganizerOrAdmin])
+def event_stats(request, event_id):
+    """Get statistics for a specific event"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check permissions
+    if not event.can_be_scanned_by(request.user):
+        return Response({
+            'error': 'You don\'t have permission to view stats for this event'
+        }, status=status.HTTP_403_FORBIDDEN)
+    
+    tickets = Ticket.objects.filter(event=event)
+    
+    stats = {
+        'event_name': event.name,
+        'event_capacity': event.capacity,
+        'total_tickets': tickets.count(),
+        'pending_tickets': tickets.filter(status='pending').count(),
+        'paid_tickets': tickets.filter(status='paid').count(),
+        'cancelled_tickets': tickets.filter(status='cancelled').count(),
+        'scanned_tickets': tickets.filter(status='used').count(),
+        'available_capacity': event.capacity - tickets.count(),
+        'scan_rate': f"{(tickets.filter(status='used').count() / max(tickets.filter(status='paid').count(), 1)) * 100:.1f}%"
+    }
+    
+    return Response(stats)
