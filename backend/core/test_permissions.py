@@ -124,11 +124,11 @@ class CanScanEventTicketsTest(TestCase):
         
         # Create event
         self.event = Event.objects.create(
-            title='Test Event',
+            name='Test Event',  # Changed from title
             description='Test description',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),  # Changed from date
+            end_time=timezone.now() + timedelta(days=30, hours=3),  # Added end_time
             location='Test Venue',
-            price=Decimal('1000.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -137,7 +137,7 @@ class CanScanEventTicketsTest(TestCase):
         self.ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'  # Changed from price
         )
     
     def test_event_organizer_can_scan(self):
@@ -182,7 +182,7 @@ class CanScanEventTicketsTest(TestCase):
         view.get_object.return_value = self.ticket
         
         self.assertFalse(
-            self.permission.has_permission(request, view)
+            self.permission.has_object_permission(request, view, self.ticket)
         )
     
     def test_regular_user_cannot_scan(self):
@@ -206,11 +206,10 @@ class CanScanEventTicketsTest(TestCase):
         request.user = self.organizer
         
         view = Mock()
-        view.get_object.side_effect = Exception("Ticket not found")
         
-        # Should return False when ticket cannot be found
+        # Should return False when ticket object is None or invalid
         self.assertFalse(
-            self.permission.has_permission(request, view)
+            self.permission.has_object_permission(request, view, None)
         )
 
 
@@ -222,29 +221,32 @@ class IsEventOrganizerTest(TestCase):
         self.factory = APIRequestFactory()
         
         self.organizer = User.objects.create_user(
+            username='organizer@test.com',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.other_organizer = User.objects.create_user(
+            username='other@test.com',
             email='other@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.admin = User.objects.create_superuser(
+            username='admin@test.com',
             email='admin@test.com',
             password='adminpass123'
         )
         
         # Create event
         self.event = Event.objects.create(
-            title='Test Event',
+            name='Test Event',
             description='Test description',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+            end_time=timezone.now() + timedelta(days=30, hours=3),
             location='Test Venue',
-            price=Decimal('1000.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -300,28 +302,31 @@ class PermissionIntegrationTest(TestCase):
     
     def setUp(self):
         self.organizer = User.objects.create_user(
+            username='organizer@test.com',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.user = User.objects.create_user(
+            username='user@test.com',
             email='user@test.com',
             password='testpass123'
         )
         
         self.admin = User.objects.create_superuser(
+            username='admin@test.com',
             email='admin@test.com',
             password='adminpass123'
         )
         
         # Create event
         self.event = Event.objects.create(
-            title='Test Event',
+            name='Test Event',
             description='Test description',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+            end_time=timezone.now() + timedelta(days=30, hours=3),
             location='Test Venue',
-            price=Decimal('1000.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -330,7 +335,7 @@ class PermissionIntegrationTest(TestCase):
         self.ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
     
     def test_permission_chain_for_ticket_validation(self):

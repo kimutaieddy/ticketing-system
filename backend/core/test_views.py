@@ -63,6 +63,7 @@ class UserRegistrationTest(APITestCase):
         """Test registration with duplicate email"""
         # Create first user
         User.objects.create_user(
+            username='existing@test.com',
             email='existing@test.com',
             password='password123'
         )
@@ -114,28 +115,32 @@ class EventAPITest(APITestCase):
     def setUp(self):
         # Create test users
         self.organizer = User.objects.create_user(
+            username='organizer@test.com',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.user = User.objects.create_user(
+            username='user@test.com',
             email='user@test.com',
             password='testpass123'
         )
         
         self.admin = User.objects.create_superuser(
+            username='admin@test.com',
             email='admin@test.com',
             password='adminpass123'
         )
         
         # Create test event
         self.event = Event.objects.create(
-            title='Test Event',
+            name='Test Event',
             description='Test event description',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+
+            end_time=timezone.now() + timedelta(days=30) + timedelta(hours=3),
             location='Test Venue',
-            price=Decimal('1500.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -217,6 +222,7 @@ class EventAPITest(APITestCase):
     def test_cannot_update_other_organizer_event(self):
         """Test that organizers cannot update other organizers' events"""
         other_organizer = User.objects.create_user(
+            username='other@test.com',
             email='other@test.com',
             password='testpass123',
             role='organizer'
@@ -247,17 +253,19 @@ class EventAPITest(APITestCase):
         """Test organizer can see only their events"""
         # Create another organizer with their event
         other_organizer = User.objects.create_user(
+            username='other@test.com',
             email='other@test.com',
             password='testpass123',
             role='organizer'
         )
         
         Event.objects.create(
-            title='Other Event',
+            name='Other Event',
             description='Other description',
-            date=timezone.now() + timedelta(days=45),
+            start_time=timezone.now() + timedelta(days=45),
+
+            end_time=timezone.now() + timedelta(days=45) + timedelta(hours=3),
             location='Other Venue',
-            price=Decimal('1000.00'),
             capacity=30,
             organizer=other_organizer
         )
@@ -280,11 +288,13 @@ class TicketAPITest(APITestCase):
     def setUp(self):
         # Create users
         self.user = User.objects.create_user(
+            username='user@test.com',
             email='user@test.com',
             password='testpass123'
         )
         
         self.organizer = User.objects.create_user(
+            username='organizer@test.com',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
@@ -292,11 +302,12 @@ class TicketAPITest(APITestCase):
         
         # Create event
         self.event = Event.objects.create(
-            title='Test Event',
+            name='Test Event',
             description='Test description',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+
+            end_time=timezone.now() + timedelta(days=30) + timedelta(hours=3),
             location='Test Venue',
-            price=Decimal('1000.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -304,8 +315,7 @@ class TicketAPITest(APITestCase):
         # Create ticket
         self.ticket = Ticket.objects.create(
             event=self.event,
-            user=self.user,
-            price=self.event.price
+            user=self.user
         )
         
         # URLs
@@ -339,11 +349,12 @@ class TicketAPITest(APITestCase):
         """Test booking more tickets than available"""
         # Create an event with only 2 capacity
         small_event = Event.objects.create(
-            title='Small Event',
+            name='Small Event',
             description='Small event',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+
+            end_time=timezone.now() + timedelta(days=30) + timedelta(hours=3),
             location='Small Venue',
-            price=Decimal('500.00'),
             capacity=2,
             organizer=self.organizer
         )
@@ -392,6 +403,7 @@ class TicketAPITest(APITestCase):
     def test_user_cannot_see_other_tickets(self):
         """Test that users can only see their own tickets"""
         other_user = User.objects.create_user(
+            username='other@test.com',
             email='other@test.com',
             password='testpass123'
         )
@@ -399,8 +411,7 @@ class TicketAPITest(APITestCase):
         # Create ticket for other user
         Ticket.objects.create(
             event=self.event,
-            user=other_user,
-            price=self.event.price
+            user=other_user
         )
         
         response = self.client.get(
@@ -419,28 +430,32 @@ class QRValidationAPITest(APITestCase):
     def setUp(self):
         # Create users
         self.organizer = User.objects.create_user(
+            username='organizer@test.com',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.user = User.objects.create_user(
+            username='user@test.com',
             email='user@test.com',
             password='testpass123'
         )
         
         self.admin = User.objects.create_superuser(
+            username='admin@test.com',
             email='admin@test.com',
             password='adminpass123'
         )
         
         # Create event
         self.event = Event.objects.create(
-            title='Test Event',
+            name='Test Event',
             description='Test description',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+
+            end_time=timezone.now() + timedelta(days=30) + timedelta(hours=3),
             location='Test Venue',
-            price=Decimal('1000.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -448,8 +463,7 @@ class QRValidationAPITest(APITestCase):
         # Create valid ticket
         self.ticket = Ticket.objects.create(
             event=self.event,
-            user=self.user,
-            price=self.event.price
+            user=self.user
         )
         
         # URLs
@@ -559,6 +573,7 @@ class QRValidationAPITest(APITestCase):
     def test_validate_ticket_by_other_organizer(self):
         """Test that organizers cannot validate other organizers' event tickets"""
         other_organizer = User.objects.create_user(
+            username='other@test.com',
             email='other@test.com',
             password='testpass123',
             role='organizer'
@@ -600,33 +615,37 @@ class OrganizerDashboardAPITest(APITestCase):
     
     def setUp(self):
         self.organizer = User.objects.create_user(
+            username='organizer@test.com',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.user = User.objects.create_user(
+            username='user@test.com',
             email='user@test.com',
             password='testpass123'
         )
         
         # Create events
         self.event1 = Event.objects.create(
-            title='Event 1',
+            name='Event 1',
             description='First event',
-            date=timezone.now() + timedelta(days=30),
+            start_time=timezone.now() + timedelta(days=30),
+
+            end_time=timezone.now() + timedelta(days=30) + timedelta(hours=3),
             location='Venue 1',
-            price=Decimal('1000.00'),
             capacity=100,
             organizer=self.organizer
         )
         
         self.event2 = Event.objects.create(
-            title='Event 2',
+            name='Event 2',
             description='Second event',
-            date=timezone.now() + timedelta(days=45),
+            start_time=timezone.now() + timedelta(days=45),
+
+            end_time=timezone.now() + timedelta(days=45) + timedelta(hours=3),
             location='Venue 2',
-            price=Decimal('1500.00'),
             capacity=50,
             organizer=self.organizer
         )
@@ -635,15 +654,13 @@ class OrganizerDashboardAPITest(APITestCase):
         for i in range(5):
             Ticket.objects.create(
                 event=self.event1,
-                user=self.user,
-                price=self.event1.price
+                user=self.user
             )
         
         for i in range(3):
             ticket = Ticket.objects.create(
                 event=self.event2,
-                user=self.user,
-                price=self.event2.price
+                user=self.user
             )
             # Mark one as used
             if i == 0:
@@ -686,6 +703,7 @@ class OrganizerDashboardAPITest(APITestCase):
     def test_organizer_cannot_access_other_stats(self):
         """Test that organizers cannot access other organizers' stats"""
         other_organizer = User.objects.create_user(
+            username='other@test.com',
             email='other@test.com',
             password='testpass123',
             role='organizer'

@@ -22,6 +22,9 @@ class CanScanEventTickets(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # obj here would be a Ticket object
+        if obj is None:
+            return False
+            
         if hasattr(obj, 'event'):
             event = obj.event
         else:
