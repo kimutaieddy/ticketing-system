@@ -83,13 +83,25 @@ class Ticket(models.Model):
         super().save(*args, **kwargs)
 
     def mark_as_used(self, scanned_by_user=None):
-        """Mark ticket as used/scanned"""
+        """Mark ticket as used/scanned with permission check"""
         from django.utils import timezone
+        
+        # Check if user has permission to scan this ticket
+        if scanned_by_user and not self.event.can_be_scanned_by(scanned_by_user):
+            return False
+        
+        # Check if ticket is already used
+        if self.status == 'used' or not self.is_valid:
+            return False
+        
+        # Mark as used
         self.status = 'used'
+        self.is_valid = False
         self.scanned_at = timezone.now()
         if scanned_by_user:
             self.scanned_by = scanned_by_user
         self.save()
+        return True
 
     def is_scannable(self):
         """Check if ticket can be scanned"""
@@ -103,6 +115,14 @@ class Ticket(models.Model):
     def validation_url(self):
         """Get the full validation URL for QR code"""
         return f"https://yourdomain.com/api/validate-ticket/{self.validation_token}/"
+
+    def get_qr_code_data(self):
+        """Get QR code data as JSON string"""
+        import json
+        return json.dumps({
+            'ticket_id': self.id,
+            'validation_token': str(self.validation_token)
+        })
 
     def __str__(self):
         return f"{self.user.username} - {self.event.name} [{self.status}]"
@@ -119,6 +139,12 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']  # email is used as login
+
+    def save(self, *args, **kwargs):
+        # Automatically set role to admin for superusers
+        if self.is_superuser and self.role != 'admin':
+            self.role = 'admin'
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.email

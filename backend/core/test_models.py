@@ -22,17 +22,17 @@ class UserModelTest(TestCase):
         self.user_data = {
             'email': 'test@example.com',
             'first_name': 'Test',
-            'last_name': 'User',
-            'phone_number': '+254712345678'
+            'last_name': 'User'
         }
     
     def test_create_user(self):
         """Test creating a regular user"""
         user = User.objects.create_user(
-            username='testuser',  # Still required by Django's create_user
-            email='user@test.com',
+            username='testuser',
+            email='user@test.com',  # Override the email from user_data
             password='testpass123',
-            **self.user_data
+            first_name=self.user_data['first_name'],
+            last_name=self.user_data['last_name']
         )
         self.assertEqual(user.email, 'user@test.com')
         self.assertEqual(user.role, 'user')
@@ -47,7 +47,8 @@ class UserModelTest(TestCase):
             email='organizer@test.com',
             password='testpass123',
             role='organizer',
-            **self.user_data
+            first_name=self.user_data['first_name'],
+            last_name=self.user_data['last_name']
         )
         self.assertEqual(organizer.role, 'organizer')
         self.assertFalse(organizer.is_staff)
@@ -58,7 +59,8 @@ class UserModelTest(TestCase):
             username='admin',
             email='admin@test.com',
             password='adminpass123',
-            **self.user_data
+            first_name=self.user_data['first_name'],
+            last_name=self.user_data['last_name']
         )
         self.assertEqual(admin.role, 'admin')
         self.assertTrue(admin.is_staff)
@@ -218,12 +220,12 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         self.assertEqual(ticket.event, self.event)
         self.assertEqual(ticket.user, self.user)
-        self.assertEqual(ticket.price, Decimal('1000.00'))
+        self.assertEqual(ticket.status, 'paid')
         self.assertTrue(ticket.is_valid)
         self.assertIsNone(ticket.scanned_at)
         self.assertIsNone(ticket.scanned_by)
@@ -235,9 +237,9 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
-        expected = f"Ticket for {self.event.title} - {self.user.email}"
+        expected = f"{self.user.username} - {self.event.name} [paid]"
         self.assertEqual(str(ticket), expected)
     
     def test_mark_as_used_by_organizer(self):
@@ -245,7 +247,7 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         # Mark as used
@@ -255,10 +257,12 @@ class TicketModelTest(TestCase):
         self.assertFalse(ticket.is_valid)
         self.assertIsNotNone(ticket.scanned_at)
         self.assertEqual(ticket.scanned_by, self.organizer)
+        self.assertEqual(ticket.status, 'used')
     
     def test_mark_as_used_by_admin(self):
         """Test marking ticket as used by admin"""
         admin = User.objects.create_superuser(
+            username='admin',
             email='admin@test.com',
             password='adminpass123'
         )
@@ -266,7 +270,7 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         result = ticket.mark_as_used(admin)
@@ -276,6 +280,7 @@ class TicketModelTest(TestCase):
     def test_cannot_mark_as_used_by_unauthorized_user(self):
         """Test that unauthorized users cannot mark ticket as used"""
         unauthorized_user = User.objects.create_user(
+            username='unauthorized',
             email='unauthorized@test.com',
             password='testpass123'
         )
@@ -283,7 +288,7 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         result = ticket.mark_as_used(unauthorized_user)
@@ -298,7 +303,7 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         # First scan - should succeed
@@ -314,13 +319,13 @@ class TicketModelTest(TestCase):
         ticket1 = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         ticket2 = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         self.assertNotEqual(ticket1.validation_token, ticket2.validation_token)
@@ -330,7 +335,7 @@ class TicketModelTest(TestCase):
         ticket = Ticket.objects.create(
             event=self.event,
             user=self.user,
-            price=self.event.price
+            status='paid'
         )
         
         qr_data = ticket.get_qr_code_data()

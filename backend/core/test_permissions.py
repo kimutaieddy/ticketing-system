@@ -24,17 +24,20 @@ class IsOrganizerOrAdminTest(TestCase):
         self.factory = APIRequestFactory()
         
         self.user = User.objects.create_user(
+            username='user',
             email='user@test.com',
             password='testpass123'
         )
         
         self.organizer = User.objects.create_user(
+            username='organizer',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.admin = User.objects.create_superuser(
+            username='admin',
             email='admin@test.com',
             password='adminpass123'
         )
@@ -94,23 +97,27 @@ class CanScanEventTicketsTest(TestCase):
         self.factory = APIRequestFactory()
         
         self.organizer = User.objects.create_user(
+            username='organizer2',
             email='organizer@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.other_organizer = User.objects.create_user(
+            username='other_organizer',
             email='other@test.com',
             password='testpass123',
             role='organizer'
         )
         
         self.user = User.objects.create_user(
+            username='user2',
             email='user@test.com',
             password='testpass123'
         )
         
         self.admin = User.objects.create_superuser(
+            username='admin2',
             email='admin@test.com',
             password='adminpass123'
         )
