@@ -112,5 +112,16 @@
     "npm": "8.19.4"
   },
   "gitHead": "5be33469d551655d878876faa9e30aa3b49f8ee9",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.4.4",
+    "@react-navigation/native": "^7.1.16",
+    "@react-navigation/native-stack": "^7.3.23",
+    "@tanstack/react-query": "^5.84.1",
+    "react-native-gesture-handler": "^2.27.2",
+    "react-native-mmkv": "^3.3.0",
+    "react-native-reanimated": "^4.0.1",
+    "react-native-svg": "^15.12.1",
+    "zustand": "^5.0.7"
+  }
 }
