@@ -11,10 +11,14 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Font from 'expo-font';
+import { MMKV } from 'react-native-mmkv';
 
 // 🎨 Theme & Store Imports
 import { useTheme } from './src/theme';
 import { useUserStore, useThemeStore } from './src/store';
+
+// 🗄️ Storage for onboarding state
+const storage = new MMKV();
 
 
 // 📱 Screen Imports
@@ -59,7 +63,7 @@ SplashScreen.preventAutoHideAsync();
 // 🎭 Main Tab Navigator with Revolutionary Design
 const MainTabNavigator = () => {
   const theme = useTheme();
-  const { user } = useUserStore();
+  const { user, isAuthenticated } = useUserStore();
 
   return (
     <Tab.Navigator
@@ -109,12 +113,19 @@ const MainTabNavigator = () => {
       <Tab.Screen 
         name="MyTickets" 
         component={MyTicketsScreen}
-        options={{ tabBarLabel: 'My Tickets' }}
+        options={{ 
+          tabBarLabel: 'My Tickets',
+          // Show badge if user is not authenticated
+          tabBarBadge: !isAuthenticated ? '!' : undefined,
+        }}
       />
       <Tab.Screen 
         name="Profile" 
         component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile' }}
+        options={{ 
+          tabBarLabel: isAuthenticated ? 'Profile' : 'Sign In',
+          tabBarBadge: !isAuthenticated ? '!' : undefined,
+        }}
       />
     </Tab.Navigator>
   );
@@ -123,6 +134,7 @@ const MainTabNavigator = () => {
 // 🎪 Main App Component
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const { isAuthenticated, user, initializeAuth } = useUserStore();
   const { currentTheme } = useThemeStore();
   const theme = useTheme();
@@ -130,19 +142,27 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // 🎨 Load custom fonts
-        await Font.loadAsync({
-          'Inter-Regular': require('./assets/fonts/Inter-Regular.ttf'),
-          'Inter-Medium': require('./assets/fonts/Inter-Medium.ttf'),
-          'Inter-SemiBold': require('./assets/fonts/Inter-SemiBold.ttf'),
-          'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
-        });
+        // 🎨 Load custom fonts (fallback if not available)
+        try {
+          await Font.loadAsync({
+            'Inter-Regular': require('./assets/fonts/Inter-Regular.ttf'),
+            'Inter-Medium': require('./assets/fonts/Inter-Medium.ttf'),
+            'Inter-SemiBold': require('./assets/fonts/Inter-SemiBold.ttf'),
+            'Inter-Bold': require('./assets/fonts/Inter-Bold.ttf'),
+          });
+        } catch (fontError) {
+          console.log('Custom fonts not available, using system fonts');
+        }
 
         // 🔐 Initialize authentication state
         await initializeAuth();
 
+        // 🎯 Check if user has seen onboarding
+        const onboardingSeen = storage.contains('hasSeenOnboarding');
+        setHasSeenOnboarding(onboardingSeen);
+
         // ⏱️ Artificial delay to show splash screen (optional)
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (e) {
         console.warn('Error preparing app:', e);
       } finally {
@@ -193,75 +213,114 @@ export default function App() {
               animation: 'slide_from_right',
             }}
           >
-            {/* 🔐 Authentication Flow */}
-            {!isAuthenticated ? (
-              <>
-                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="Register" component={RegisterScreen} />
-                <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-              </>
-            ) : (
-              <>
-                {/* 🏠 Main App Flow */}
-                <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-                <Stack.Screen 
-                  name="EventDetails" 
-                  component={EventDetailsScreen}
-                  options={{
-                    headerShown: true,
-                    headerTitle: 'Event Details',
-                    headerStyle: {
-                      backgroundColor: theme.colors.surface,
-                    },
-                    headerTintColor: theme.colors.text,
-                    headerTitleStyle: {
-                      fontWeight: 'bold',
-                    },
-                  }}
-                />
-                <Stack.Screen 
-                  name="TicketBooking" 
-                  component={TicketBookingScreen}
-                  options={{
-                    headerShown: true,
-                    headerTitle: 'Book Tickets',
-                    headerStyle: {
-                      backgroundColor: theme.colors.surface,
-                    },
-                    headerTintColor: theme.colors.text,
-                  }}
-                />
-                <Stack.Screen 
-                  name="QRScanner" 
-                  component={QRScannerScreen}
-                  options={{
-                    headerShown: true,
-                    headerTitle: 'Scan QR Code',
-                    headerStyle: {
-                      backgroundColor: theme.colors.surface,
-                    },
-                    headerTintColor: theme.colors.text,
-                  }}
-                />
-                
-                {/* 📊 Organizer Flow (conditional) */}
-                {user?.role === 'organizer' || user?.role === 'admin' ? (
-                  <Stack.Screen 
-                    name="OrganizerDashboard" 
-                    component={OrganizerDashboardScreen}
-                    options={{
-                      headerShown: true,
-                      headerTitle: 'Organizer Dashboard',
-                      headerStyle: {
-                        backgroundColor: theme.colors.surface,
-                      },
-                      headerTintColor: theme.colors.text,
-                    }}
-                  />
-                ) : null}
-              </>
-            )}
+            {/* 🎯 Show onboarding only for first-time users */}
+            {!hasSeenOnboarding ? (
+              <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            ) : null}
+            
+            {/* 🏠 Main App Flow - Always Available */}
+            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+            
+            {/* 🔐 Authentication Screens - Modal-style */}
+            <Stack.Screen 
+              name="Login" 
+              component={LoginScreen}
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+                headerShown: true,
+                headerTitle: 'Sign In',
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.text,
+              }}
+            />
+            <Stack.Screen 
+              name="Register" 
+              component={RegisterScreen}
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+                headerShown: true,
+                headerTitle: 'Create Account',
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.text,
+              }}
+            />
+            <Stack.Screen 
+              name="ForgotPassword" 
+              component={ForgotPasswordScreen}
+              options={{
+                presentation: 'modal',
+                animation: 'slide_from_bottom',
+                headerShown: true,
+                headerTitle: 'Reset Password',
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.text,
+              }}
+            />
+            
+            {/* 🎪 Event Flow */}
+            <Stack.Screen 
+              name="EventDetails" 
+              component={EventDetailsScreen}
+              options={{
+                headerShown: true,
+                headerTitle: 'Event Details',
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.text,
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+              }}
+            />
+            <Stack.Screen 
+              name="TicketBooking" 
+              component={TicketBookingScreen}
+              options={{
+                headerShown: true,
+                headerTitle: 'Book Tickets',
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.text,
+              }}
+            />
+            <Stack.Screen 
+              name="QRScanner" 
+              component={QRScannerScreen}
+              options={{
+                headerShown: true,
+                headerTitle: 'Scan QR Code',
+                headerStyle: {
+                  backgroundColor: theme.colors.surface,
+                },
+                headerTintColor: theme.colors.text,
+              }}
+            />
+            
+            {/* 📊 Organizer Flow (conditional) */}
+            {user?.role === 'organizer' || user?.role === 'admin' ? (
+              <Stack.Screen 
+                name="OrganizerDashboard" 
+                component={OrganizerDashboardScreen}
+                options={{
+                  headerShown: true,
+                  headerTitle: 'Organizer Dashboard',
+                  headerStyle: {
+                    backgroundColor: theme.colors.surface,
+                  },
+                  headerTintColor: theme.colors.text,
+                }}
+              />
+            ) : null}
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>

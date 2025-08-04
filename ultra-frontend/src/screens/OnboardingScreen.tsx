@@ -16,9 +16,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { MMKV } from 'react-native-mmkv';
 import { useTheme } from '../theme';
 import { useThemeStore } from '../store';
 import { UltraButton, UltraCard } from '../components/UltraComponents';
+
+// 🗄️ Storage for onboarding state
+const storage = new MMKV();
 
 const { width, height } = Dimensions.get('window');
 
@@ -181,6 +185,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
 
+    // Mark onboarding as seen
+    storage.set('hasSeenOnboarding', true);
+
     // Exit animation
     Animated.parallel([
       Animated.timing(scaleAnim, {
@@ -194,7 +201,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }
         useNativeDriver: true,
       }),
     ]).start(() => {
-      navigation.replace('Login');
+      // Navigate directly to main app
+      navigation.replace('MainTabs');
     });
   };
 
@@ -202,7 +210,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }
     if (hapticFeedback) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    navigateToLogin();
+    // Mark onboarding as seen and navigate to main app
+    storage.set('hasSeenOnboarding', true);
+    navigation.replace('MainTabs');
   };
 
   const currentSlide = onboardingData[currentIndex];
