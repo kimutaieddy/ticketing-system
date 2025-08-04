@@ -23,7 +23,7 @@ import * as Location from 'expo-location';
 // 🎯 Revolutionary Components & Systems
 import { UltraButton, UltraCard, UltraFAB, UltraLoading } from '../components/UltraComponents';
 import { useTheme } from '../theme';
-import { useThemeStore, useUserStore, useEventStore } from '../store';
+import { useThemeStore, useUserStore, useEventsStore } from '../store';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,7 +31,7 @@ export const HomeScreen = () => {
   const theme = useTheme();
   const { isDark, toggleTheme } = useThemeStore();
   const { user } = useUserStore();
-  const { events, fetchEvents, featuredEvents } = useEventStore();
+  const { events, fetchEvents, featuredEvents } = useEventsStore();
   
   // 🎯 Animation Values
   const scrollY = useRef(new Animated.Value(0)).current;

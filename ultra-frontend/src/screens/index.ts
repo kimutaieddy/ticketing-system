@@ -5,6 +5,7 @@ export { LoginScreen } from './LoginScreen';
 export { RegisterScreen } from './RegisterScreen';
 export { ForgotPasswordScreen } from './ForgotPasswordScreen';
 export { OnboardingScreen } from './OnboardingScreen';
+export { LoginPromptScreen, TicketsLoginPrompt, ProfileLoginPrompt } from './LoginPromptScreen';
 
 // 🏠 Main Application Screens
 export { HomeScreen } from './HomeScreen';
