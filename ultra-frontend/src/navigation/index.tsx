@@ -1,4 +1,17 @@
-// 🎯 NAVIGATION SYSTEM
+// import React, { useRef, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Dimensions, Animated, Platform } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../theme';
+import { useThemeStore, useUserStore, useStore } from '../store';
+import { UltraLoading } from '../components/UltraComponents';
+import { LoginScreen, RegisterScreen, ForgotPasswordScreen, HomeScreen } from '../screens'; SYSTEM
 // Revolutionary navigation with smooth animations and gestures
 
 import React, { useRef, useEffect } from 'react';
@@ -12,7 +25,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
-import { useThemeStore } from '../store';
+import { useThemeStore, useUserStore } from '../store';
+import { LoginScreen, RegisterScreen, ForgotPasswordScreen } from '../screens';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -313,6 +327,25 @@ export const MainTabNavigator = () => {
   );
 };
 
+// 🎯 Authentication Stack Navigator
+export const AuthStackNavigator = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        animationDuration: 300,
+        gestureEnabled: true,
+        gestureDirection: 'horizontal',
+      }}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    </Stack.Navigator>
+  );
+};
+
 // 🎯 Stack Navigator with Custom Transitions
 export const AppStackNavigator = () => {
   const theme = useTheme();
@@ -356,14 +389,45 @@ export const AppStackNavigator = () => {
   );
 };
 
-// 🏗️ Root Navigation Container
+// 🏗️ Root Navigation Container with Revolutionary Authentication Flow
 export const RootNavigator = () => {
   const theme = useTheme();
   const { isDark } = useThemeStore();
+  const { user } = useStore();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // 🎯 Check for existing authentication with smooth loading
+    const checkAuthStatus = async () => {
+      try {
+        // Simulate authentication check with elegant delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: isDark ? '#0A0A0A' : '#FFFFFF',
+      }}>
+        <UltraLoading size="large" />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer theme={getNavigationTheme(isDark, theme.colors)}>
-      <AppStackNavigator />
+      {user ? <AppStackNavigator /> : <AuthStackNavigator />}
     </NavigationContainer>
   );
 };
