@@ -9,6 +9,7 @@ export { LoginPromptScreen, TicketsLoginPrompt, ProfileLoginPrompt } from './Log
 
 // 🏠 Main Application Screens
 export { HomeScreen } from './HomeScreen';
+export { EventsScreen } from './EventsScreen';
 export { EventDetailsScreen } from './EventDetailsScreen';
 export { TicketBookingScreen } from './TicketBookingScreen';
 export { ProfileScreen } from './ProfileScreen';
