@@ -1,89 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React from 'react';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
 
-// Temporarily import a simple test component
-const TestApp = () => {
+const App = () => {
   return (
-    <View style={styles.testContainer}>
-      <Text style={styles.testText}>🎫 Ultra Ticketing App Loading...</Text>
-      <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <Text style={styles.title}>🎫 Ultra Ticketing</Text>
+      <Text style={styles.subtitle}>App is working!</Text>
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>✅ React Native Connected</Text>
+      </View>
     </View>
   );
 };
 
-const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // For now, let's show a simple test screen to fix the white screen
-  // We'll add back the full navigation after confirming this works
-  return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <TestApp />
-      </NavigationContainer>
-    </SafeAreaProvider>
-  );
-
-  /* ORIGINAL CODE - Will restore after testing
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      setIsAuthenticated(!!token);
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <SafeAreaProvider>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </View>
-      </SafeAreaProvider>
-    );
-  }
-
-  return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <AppNavigator isAuthenticated={isAuthenticated} />
-      </NavigationContainer>
-    </SafeAreaProvider>
-  );
-  */
-};
-
 const styles = StyleSheet.create({
-  loadingContainer: {
+  container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-  testContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f2f5',
     padding: 20,
   },
-  testText: {
-    fontSize: 24,
+  title: {
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 10,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  badge: {
+    backgroundColor: '#28a745',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  badgeText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
     alignItems: 'center',
