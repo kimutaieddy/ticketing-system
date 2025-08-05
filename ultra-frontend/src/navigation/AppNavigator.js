@@ -4,7 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 // Import screens
-import { HomeScreen } from '../screens/HomeScreen';
+import { HomeScreen } from '../screens/HomeScreenSimple';
+// import { HomeScreen } from '../screens/HomeScreen';
 import { EventsScreen } from '../screens/EventsScreen';
 import { MyTicketsScreen } from '../screens/MyTicketsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
@@ -49,9 +50,9 @@ const MainTabNavigator = () => {
 };
 
 // Root Stack Navigator
-export const AppNavigator = () => {
+export const AppNavigator = ({ isAuthenticated }) => {
   return (
-    <Stack.Navigator initialRouteName="MainTabs">
+    <Stack.Navigator initialRouteName={isAuthenticated ? "MainTabs" : "MainTabs"}>
       <Stack.Screen 
         name="MainTabs" 
         component={MainTabNavigator} 
