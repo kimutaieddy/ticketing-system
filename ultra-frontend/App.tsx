@@ -1,14 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppNavigator } from './src/navigation/AppNavigator';
+
+// Temporarily import a simple test component
+const TestApp = () => {
+  return (
+    <View style={styles.testContainer}>
+      <Text style={styles.testText}>🎫 Ultra Ticketing App Loading...</Text>
+      <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 20 }} />
+    </View>
+  );
+};
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // For now, let's show a simple test screen to fix the white screen
+  // We'll add back the full navigation after confirming this works
+  return (
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <TestApp />
+      </NavigationContainer>
+    </SafeAreaProvider>
+  );
+
+  /* ORIGINAL CODE - Will restore after testing
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -42,12 +62,30 @@ const App = () => {
       </NavigationContainer>
     </SafeAreaProvider>
   );
+  */
 };
 
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
+  testContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 20,
+  },
+  testText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+});
     alignItems: 'center',
     backgroundColor: '#ffffff',
   },
