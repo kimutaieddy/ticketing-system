@@ -1,23 +1,256 @@
-// 🏠 HOME SCREEN
-// The most spectacular home experience with cutting-edge features
-
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
+  StyleSheet,
   ScrollView,
-  Dimensions,
   TouchableOpacity,
-  StatusBar,
-  Animated,
-  RefreshControl,
-  Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { useNavigation } from '@react-navigation/native';
+
+const { width } = Dimensions.get('window');
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+
+  const quickActions = [
+    {
+      id: 1,
+      title: 'Browse Events',
+      subtitle: 'Find amazing events',
+      icon: 'calendar',
+      color: '#FF6B6B',
+      onPress: () => navigation.navigate('Events'),
+    },
+    {
+      id: 2,
+      title: 'My Tickets',
+      subtitle: 'View your tickets',
+      icon: 'ticket',
+      color: '#4ECDC4',
+      onPress: () => navigation.navigate('MyTickets'),
+    },
+    {
+      id: 3,
+      title: 'Profile',
+      subtitle: 'Manage account',
+      icon: 'person',
+      color: '#45B7D1',
+      onPress: () => navigation.navigate('Profile'),
+    },
+    {
+      id: 4,
+      title: 'Notifications',
+      subtitle: 'Check updates',
+      icon: 'notifications',
+      color: '#96CEB4',
+      onPress: () => console.log('Notifications'),
+    },
+  ];
+
+  const featuredEvents = [
+    {
+      id: 1,
+      title: 'Music Festival 2025',
+      date: 'Aug 15, 2025',
+      price: '$99',
+    },
+    {
+      id: 2,
+      title: 'Tech Conference',
+      date: 'Sep 10, 2025',
+      price: '$149',
+    },
+  ];
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Welcome!</Text>
+          <Text style={styles.subtitle}>Discover amazing events</Text>
+        </View>
+
+        {/* Quick Actions Grid */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.grid}>
+            {quickActions.map((action) => (
+              <TouchableOpacity
+                key={action.id}
+                style={[styles.actionCard, { backgroundColor: action.color }]}
+                onPress={action.onPress}
+              >
+                <Ionicons name={action.icon} size={32} color="white" />
+                <Text style={styles.actionTitle}>{action.title}</Text>
+                <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Featured Events */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Featured Events</Text>
+          {featuredEvents.map((event) => (
+            <TouchableOpacity
+              key={event.id}
+              style={styles.eventCard}
+              onPress={() => navigation.navigate('EventDetails', { eventId: event.id })}
+            >
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventDate}>{event.date}</Text>
+              </View>
+              <Text style={styles.eventPrice}>{event.price}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Stats */}
+        <View style={styles.section}>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>50+</Text>
+              <Text style={styles.statLabel}>Events</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>1K+</Text>
+              <Text style={styles.statLabel}>Users</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>5K+</Text>
+              <Text style={styles.statLabel}>Tickets Sold</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  header: {
+    padding: 20,
+    paddingTop: 10,
+  },
+  greeting: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 5,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#7F8C8D',
+  },
+  section: {
+    marginBottom: 30,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#2C3E50',
+    marginBottom: 15,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  actionCard: {
+    width: (width - 60) / 2,
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginBottom: 15,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  actionTitle: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  actionSubtitle: {
+    color: 'white',
+    fontSize: 12,
+    opacity: 0.9,
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  eventCard: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  eventInfo: {
+    flex: 1,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2C3E50',
+    marginBottom: 5,
+  },
+  eventDate: {
+    fontSize: 14,
+    color: '#7F8C8D',
+  },
+  eventPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#27AE60',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginTop: 5,
+  },
+});
 import * as Location from 'expo-location';
 
 // 🎯 Revolutionary Components & Systems
