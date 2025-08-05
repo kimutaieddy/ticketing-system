@@ -54,15 +54,6 @@ class TicketCreateView(generics.CreateAPIView):
         if current_tickets >= event.capacity:
             return Response({"error": "Event is fully booked."}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
-        event_id = self.kwargs.get('event_id')
-        event = get_object_or_404(Event, id=event_id)
-
-        # Check if event still has capacity
-        current_tickets = Ticket.objects.filter(event=event).count()
-        if current_tickets >= event.capacity:
-            return Response({"error": "Event is fully booked."}, status=status.HTTP_400_BAD_REQUEST)
-
         ticket = Ticket.objects.create(user=request.user, event=event)
 
         # Send confirmation email after ticket is created
