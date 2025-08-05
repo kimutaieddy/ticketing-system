@@ -236,18 +236,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
-
-export const ProfileScreen: React.FC = () => {
-  const theme = useTheme();
-  const { isAuthenticated, user } = useUserStore();
-
-  // 🔐 Show login prompt if user is not authenticated
-  if (!isAuthenticated) {
-    return <ProfileLoginPrompt />;
-  }
-
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView style={{ flex: 1, padding: theme.spacing.lg }}>
         <UltraCard>
           <Text style={{ ...theme.typography.h1, color: theme.colors.text }}>

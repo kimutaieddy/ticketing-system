@@ -258,8 +258,6 @@ import { UltraButton, UltraCard, UltraFAB, UltraLoading } from '../components/Ul
 import { useTheme } from '../theme';
 import { useThemeStore, useUserStore, useEventsStore } from '../store';
 
-const { width, height } = Dimensions.get('window');
-
 export const HomeScreen = () => {
   const theme = useTheme();
   const { isDark, toggleTheme } = useThemeStore();

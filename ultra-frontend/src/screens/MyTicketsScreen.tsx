@@ -209,15 +209,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export const MyTicketsScreen: React.FC = () => {
-  const theme = useTheme();
-  const { isAuthenticated } = useUserStore();
-
-  // 🔐 Show login prompt if user is not authenticated
-  if (!isAuthenticated) {
-    return <TicketsLoginPrompt />;
-  }
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView style={{ flex: 1, padding: theme.spacing.lg }}>
